@@ -16,14 +16,6 @@ class HttpClient
 
     /**
      * Send an HTTP request
-     *
-     * @param string $baseUri
-     * @param RequestMethod $method
-     * @param string $uri
-     * @param array $params
-     * @param array $headers
-     *
-     * @return object
      */
     public function makeRequest(
         string $baseUri,

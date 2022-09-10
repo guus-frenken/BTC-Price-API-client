@@ -3,16 +3,16 @@ import 'chartjs-adapter-date-fns';
 
 const getCurrentBtcPrice = async () => {
     let response = await fetch('/api/btcprice/');
-    let data = await response.json();
+    let {price} = await response.json();
 
-    return data.price;
+    return price;
 };
 
 const getBtcPrices = async () => {
     let response = await fetch('/api/btcprice/history/');
-    let data = await response.json();
+    let {prices} = await response.json();
 
-    return data.prices;
+    return prices;
 };
 
 const prepareChartData = async () => {
