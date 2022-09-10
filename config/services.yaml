@@ -1,0 +1,28 @@
+parameters:
+    coingecko_api.base_uri: '%env(COINGECKO_API_BASE_URI)%'
+    coinranking_api.base_uri: '%env(COINRANKING_API_BASE_URI)%'
+    coinranking_api.api_key: '%env(COINRANKING_API_API_KEY)%'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+#    App\Service\BtcPrice\BtcPriceProviderInterface: '@App\Service\BtcPrice\CoinGeckoBtcPriceProvider'
+    App\Service\BtcPrice\BtcPriceProviderInterface: '@App\Service\BtcPrice\CoinrankingBtcPriceProvider'
+
+    App\Service\BtcPrice\CoinGeckoBtcPriceProvider:
+        arguments:
+            $baseUri: '%coingecko_api.base_uri%'
+
+    App\Service\BtcPrice\CoinrankingBtcPriceProvider:
+        arguments:
+            $baseUri: '%coinranking_api.base_uri%'
+            $apiKey: '%coinranking_api.api_key%'
