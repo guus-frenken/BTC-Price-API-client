@@ -5,7 +5,6 @@ namespace App\Service\BtcPrice;
 use App\DTO\BtcPrice;
 use App\Config\Currency;
 use App\Service\HttpClient;
-use App\Config\RequestMethod;
 use App\DTO\BtcPriceCollection;
 use App\Service\NumberFormatter;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -103,23 +102,14 @@ class CoinrankingBtcPriceProvider implements BtcPriceProviderInterface
     }
 
     /**
-     * Send a GET request to the Coinranking API
+     * Send a request to the Coinranking API
      */
     private function makeGetRequest(string $uri, array $params = [], array $headers = []): object
     {
-        return $this->makeRequest(RequestMethod::GET, $uri, $params, $headers);
-    }
-
-    /**
-     * Send a request to the Coinranking API
-     */
-    private function makeRequest(RequestMethod $method, string $uri, array $params = [], array $headers = []): object
-    {
-        return $this->httpClient->makeRequest(
+        return $this->httpClient->makeGetRequest(
             baseUri: $this->baseUri,
-            method: $method,
             uri: $uri,
-            params: ['query' => $params],
+            urlParams: $params,
             headers: [...$this->authParams(), ...$headers],
         );
     }
