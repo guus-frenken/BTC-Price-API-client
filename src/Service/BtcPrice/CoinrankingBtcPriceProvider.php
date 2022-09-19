@@ -69,10 +69,10 @@ class CoinrankingBtcPriceProvider implements BtcPriceProviderInterface
 
                 $prices = $response->body->data->history;
 
-                // Coinranking API returns prices at a 1hr interval, so only add every 24th item to the BtcPriceCollection
-                $prices = array_filter($prices, function ($index) {
-                    return $index % 24 == 0;
-                }, ARRAY_FILTER_USE_KEY);
+                // Coinranking API returns prices at a 1hr interval, so only add items where the timestamp is midnight
+                $prices = array_filter($prices, function ($price) {
+                    return $price->timestamp % 86400 === 0;
+                });
 
                 return new BtcPriceCollection(
                     ...array_map(function ($price) use ($currency) {
