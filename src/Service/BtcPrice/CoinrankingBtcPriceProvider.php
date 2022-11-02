@@ -25,7 +25,7 @@ class CoinrankingBtcPriceProvider implements BtcPriceProviderInterface
     /**
      * @inheritDoc
      */
-    public function getPrice(Currency $currency): BtcPrice
+    public function getPrice(Currency $currency): ?BtcPrice
     {
         return $this->cache->get("btc_price_{$currency->value}", function (ItemInterface $item) use ($currency) {
             $item->expiresAfter(3600);
@@ -37,14 +37,20 @@ class CoinrankingBtcPriceProvider implements BtcPriceProviderInterface
                 ],
             );
 
-            return BtcPrice::create([
-                'price' => $response->body->data->price,
-                'priceFormatted' => $this->numberFormatter->formatCurrency(
-                    $response->body->data->price,
+            if (!isset($response->body->data->price, $response->body->data->timestamp)) {
+                return null;
+            }
+
+            $data = $response->body->data;
+
+            return new BtcPrice(
+                price: $data->price,
+                priceFormatted: $this->numberFormatter->formatCurrency(
+                    number: $data->price,
                     currency: $currency
                 ),
-                'timestamp' => $response->body->data->timestamp,
-            ]);
+                timestamp: $data->timestamp,
+            );
         });
     }
 
@@ -67,6 +73,10 @@ class CoinrankingBtcPriceProvider implements BtcPriceProviderInterface
                     ],
                 );
 
+                if (!isset($response->body->data->history)) {
+                    return new BtcPriceCollection();
+                }
+
                 $prices = $response->body->data->history;
 
                 // Coinranking API returns prices at a 1hr interval, so only add items where the timestamp is midnight
@@ -76,14 +86,14 @@ class CoinrankingBtcPriceProvider implements BtcPriceProviderInterface
 
                 return new BtcPriceCollection(
                     ...array_map(function ($price) use ($currency) {
-                        return BtcPrice::create([
-                            'price' => $price->price,
-                            'priceFormatted' => $this->numberFormatter->formatCurrency(
-                                $price->price,
+                        return new BtcPrice(
+                            price: $price->price,
+                            priceFormatted: $this->numberFormatter->formatCurrency(
+                                number: $price->price,
                                 currency: $currency
                             ),
-                            'timestamp' => ($price->timestamp * 1000),
-                        ]);
+                            timestamp: ($price->timestamp * 1000),
+                        );
                     }, $prices)
                 );
             }

@@ -11,18 +11,42 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 #[Route('/api/btcprice', name: 'btc_price_')]
 class BtcPriceController extends AbstractController
 {
-    #[Route('/', name: 'index')]
-    public function index(BtcPriceProviderInterface $btcPriceProvider): Response
+    public function __construct(private readonly BtcPriceProviderInterface $btcPriceProvider)
     {
-        $price = $btcPriceProvider->getPrice(Currency::EUR);
+    }
+
+    #[Route('/{currency}', name: 'index')]
+    public function index(string $currency): Response
+    {
+        $currency = Currency::tryFrom(strtoupper($currency));
+
+        if (is_null($currency)) {
+            return $this->json(['error' => 'Invalid currency'], 400);
+        }
+
+        $price = $this->btcPriceProvider->getPrice($currency);
+
+        if (is_null($price)) {
+            return $this->json(['error' => 'Could not get price'], 500);
+        }
 
         return $this->json(['price' => $price]);
     }
 
-    #[Route('/history/', name: 'history')]
-    public function history(BtcPriceProviderInterface $btcPriceProvider): Response
+    #[Route('/{currency}/history', name: 'history')]
+    public function history(string $currency): Response
     {
-        $history = $btcPriceProvider->get30DayPriceHistory(Currency::EUR);
+        $currency = Currency::tryFrom(strtoupper($currency));
+
+        if (is_null($currency)) {
+            return $this->json(['error' => 'Invalid currency'], 400);
+        }
+
+        $history = $this->btcPriceProvider->get30DayPriceHistory($currency);
+
+        if (empty($history)) {
+            return $this->json(['error' => 'Could not get history'], 500);
+        }
 
         return $this->json(['prices' => $history]);
     }

@@ -1,33 +1,42 @@
 import Chart from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
 
+const getApiData = async (endpoint) => {
+    const response = await fetch(`/api/${endpoint}`);
+
+    if (response.status !== 200) {
+        throw new Error(response.status);
+    }
+
+    return await response.json();
+};
+
 const getCurrentBtcPrice = async () => {
-    let response = await fetch('/api/btcprice/');
-    let {price} = await response.json();
+    const {price} = await getApiData(`btcprice/${window.currency}`);
 
     return price;
 };
 
 const getBtcPrices = async () => {
-    let response = await fetch('/api/btcprice/history/');
-    let {prices} = await response.json();
+    const {prices} = await getApiData(`btcprice/${window.currency}/history`);
 
     return prices;
 };
 
 const prepareChartData = async () => {
-    let data = [];
     const prices = await getBtcPrices();
 
-    prices.map(function (price) {
-        data.push({
+    if (prices.length === 0) {
+        return [];
+    }
+
+    return prices.map(function (price) {
+        return {
             x: new Date(price.timestamp),
             y: price.price,
             priceFormatted: price.priceFormatted,
-        });
+        }
     });
-
-    return data;
 };
 
 const loadChart = (ctx, data) => {
@@ -41,7 +50,6 @@ const loadChart = (ctx, data) => {
                     label: 'Price',
                     data: data,
                     tension: 0.1,
-                    yAxisID: 'y',
                 },
             ],
         },
@@ -54,10 +62,9 @@ const loadChart = (ctx, data) => {
                     callbacks: {
                         label: function (context) {
                             let label = `${context.dataset.label}: `;
-                            let price = context.dataset.data[context.dataIndex].priceFormatted;
 
                             if (context.parsed.y !== null) {
-                                label += price;
+                                label += context.dataset.data[context.dataIndex].priceFormatted;
                             }
 
                             return label;
@@ -92,14 +99,12 @@ const loadChart = (ctx, data) => {
     });
 };
 
-(async function () {
+(function () {
+    window.currency = 'eur';
+
     const ctx = document.getElementById('btcPricesChart').getContext('2d');
-    const data = await prepareChartData();
-
-    loadChart(ctx, data);
-
     const priceElem = document.getElementById('currentBtcPrice');
-    let price = await getCurrentBtcPrice();
 
-    priceElem.innerHTML = `Current price: ${price.priceFormatted}`;
+    prepareChartData().then(data => loadChart(ctx, data));
+    getCurrentBtcPrice().then(price => priceElem.innerText = `Current price: ${price.priceFormatted}`);
 })();

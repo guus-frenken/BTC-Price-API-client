@@ -11,7 +11,7 @@ interface BtcPriceProviderInterface
     /**
      * Get the current BTC price in a given Currency
      */
-    public function getPrice(Currency $currency): BtcPrice;
+    public function getPrice(Currency $currency): ?BtcPrice;
 
     /**
      * Get a 30 day BTC price history in a given Currency

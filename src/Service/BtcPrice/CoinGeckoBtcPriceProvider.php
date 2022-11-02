@@ -24,7 +24,7 @@ class CoinGeckoBtcPriceProvider implements BtcPriceProviderInterface
     /**
      * @inheritDoc
      */
-    public function getPrice(Currency $currency): BtcPrice
+    public function getPrice(Currency $currency): ?BtcPrice
     {
         return $this->cache->get("btc_price_{$currency->value}", function (ItemInterface $item) use ($currency) {
             $item->expiresAfter(3600);
@@ -37,14 +37,20 @@ class CoinGeckoBtcPriceProvider implements BtcPriceProviderInterface
                 ],
             );
 
-            return BtcPrice::create([
-                'price' => $response->body->bitcoin->{strtolower($currency->value)},
-                'priceFormatted' => $this->numberFormatter->formatCurrency(
-                    $response->body->bitcoin->{strtolower($currency->value)},
+            if (!isset($response->body->bitcoin->{strtolower($currency->value)})) {
+                return null;
+            }
+
+            $price = $response->body->bitcoin->{strtolower($currency->value)};
+
+            return new BtcPrice(
+                price: $price,
+                priceFormatted: $this->numberFormatter->formatCurrency(
+                    number: $price,
                     currency: $currency
                 ),
-                'timestamp' => (new DateTime())->getTimestamp(),
-            ]);
+                timestamp: (new DateTime())->getTimestamp(),
+            );
         });
     }
 
@@ -68,18 +74,22 @@ class CoinGeckoBtcPriceProvider implements BtcPriceProviderInterface
                     ],
                 );
 
+                if (!isset($response->body->prices)) {
+                    return new BtcPriceCollection();
+                }
+
                 $prices = $response->body->prices;
 
                 return new BtcPriceCollection(
                     ...array_map(function ($price) use ($currency) {
-                        return BtcPrice::create([
-                            'price' => $price[1],
-                            'priceFormatted' => $this->numberFormatter->formatCurrency(
-                                $price[1],
+                        return new BtcPrice(
+                            price: $price[1],
+                            priceFormatted: $this->numberFormatter->formatCurrency(
+                                number: $price[1],
                                 currency: $currency
                             ),
-                            'timestamp' => $price[0],
-                        ]);
+                            timestamp: $price[0],
+                        );
                     }, $prices)
                 );
             }
