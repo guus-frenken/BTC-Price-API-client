@@ -5,7 +5,6 @@ namespace App\Service\BtcPrice;
 use DateTime;
 use App\DTO\BtcPrice;
 use App\Config\Currency;
-use App\Service\HttpClient;
 use App\DTO\BtcPriceCollection;
 use App\Service\NumberFormatter;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -15,9 +14,8 @@ class CoinGeckoBtcPriceProvider implements BtcPriceProviderInterface
 {
     public function __construct(
         private readonly CacheInterface $cache,
-        private readonly HttpClient $httpClient,
+        private readonly CoinGeckoApiClient $client,
         private readonly NumberFormatter $numberFormatter,
-        private readonly string $baseUri,
     ) {
     }
 
@@ -29,7 +27,7 @@ class CoinGeckoBtcPriceProvider implements BtcPriceProviderInterface
         return $this->cache->get("btc_price_{$currency->value}", function (ItemInterface $item) use ($currency) {
             $item->expiresAfter(3600);
 
-            $response = $this->makeGetRequest(
+            $response = $this->client->get(
                 uri: 'simple/price',
                 params: [
                     'ids' => 'bitcoin',
@@ -64,7 +62,7 @@ class CoinGeckoBtcPriceProvider implements BtcPriceProviderInterface
             function (ItemInterface $item) use ($currency) {
                 $item->expiresAfter(3600);
 
-                $response = $this->makeGetRequest(
+                $response = $this->client->get(
                     uri: 'coins/bitcoin/market_chart',
                     params: [
                         'id' => 'bitcoin',
@@ -78,34 +76,19 @@ class CoinGeckoBtcPriceProvider implements BtcPriceProviderInterface
                     return new BtcPriceCollection();
                 }
 
-                $prices = $response->body->prices;
+                $prices = array_map(function ($price) use ($currency) {
+                    return new BtcPrice(
+                        price: $price[1],
+                        priceFormatted: $this->numberFormatter->formatCurrency(
+                            number: $price[1],
+                            currency: $currency
+                        ),
+                        timestamp: $price[0],
+                    );
+                }, $response->body->prices);
 
-                return new BtcPriceCollection(
-                    ...array_map(function ($price) use ($currency) {
-                        return new BtcPrice(
-                            price: $price[1],
-                            priceFormatted: $this->numberFormatter->formatCurrency(
-                                number: $price[1],
-                                currency: $currency
-                            ),
-                            timestamp: $price[0],
-                        );
-                    }, $prices)
-                );
+                return new BtcPriceCollection(...$prices);
             }
-        );
-    }
-
-    /**
-     * Send a request to the CoinGecko API
-     */
-    private function makeGetRequest(string $uri, array $params = [], array $headers = []): object
-    {
-        return $this->httpClient->makeGetRequest(
-            baseUri: $this->baseUri,
-            uri: $uri,
-            urlParams: $params,
-            headers: $headers,
         );
     }
 }

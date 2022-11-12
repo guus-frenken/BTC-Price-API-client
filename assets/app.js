@@ -1,3 +1,8 @@
-import './styles/app.scss';
+import {createApp} from 'vue';
+import {setupRouter} from './router';
+import App from './App.vue';
+import './styles/app.css';
 
-import './btc-chart';
+createApp(App)
+    .use(setupRouter())
+    .mount('#app');

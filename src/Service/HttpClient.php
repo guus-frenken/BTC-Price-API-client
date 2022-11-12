@@ -17,7 +17,7 @@ class HttpClient
     /**
      * Perform a GET request
      */
-    public function makeGetRequest(
+    public function get(
         string $baseUri,
         string $uri,
         array $urlParams = [],
@@ -37,7 +37,7 @@ class HttpClient
     /**
      * Perform a POST request
      */
-    public function makePostRequest(
+    public function post(
         string $baseUri,
         string $uri,
         array $body = [],

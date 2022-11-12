@@ -18,11 +18,11 @@ services:
 #    App\Service\BtcPrice\BtcPriceProviderInterface: '@App\Service\BtcPrice\CoinGeckoBtcPriceProvider'
     App\Service\BtcPrice\BtcPriceProviderInterface: '@App\Service\BtcPrice\CoinrankingBtcPriceProvider'
 
-    App\Service\BtcPrice\CoinGeckoBtcPriceProvider:
+    App\Service\BtcPrice\CoinGeckoApiClient:
         arguments:
             $baseUri: '%coingecko_api.base_uri%'
 
-    App\Service\BtcPrice\CoinrankingBtcPriceProvider:
+    App\Service\BtcPrice\CoinrankingApiClient:
         arguments:
             $baseUri: '%coinranking_api.base_uri%'
             $apiKey: '%coinranking_api.api_key%'

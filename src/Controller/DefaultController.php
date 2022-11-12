@@ -10,8 +10,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class DefaultController extends AbstractController
 {
     #[Route('/', name: 'index')]
+    #[Route('/{view}', name: 'vue', requirements: ['view' => '^(?!.*api/).+'])]
     public function index(): Response
     {
-        return $this->render('default/index.html.twig');
+        return $this->render('index.html.twig');
     }
 }
