@@ -3,23 +3,16 @@ import {computed, onMounted, reactive, ref, watch} from 'vue';
 import 'chartjs-adapter-date-fns';
 import {LineChart} from 'vue-chart-3';
 import {Chart, LineElement, PointElement, LineController, LinearScale, TimeScale, Filler, Tooltip} from 'chart.js';
+import {useBtcApiStore} from '../stores/btcapistore';
 import useBtcPrices from '../composables/btcprices';
 
 Chart.register(LineElement, PointElement, LineController, LinearScale, TimeScale, Filler, Tooltip);
+
+const store = useBtcApiStore();
 const {getBtcPriceHistory} = useBtcPrices();
 
-const props = defineProps({
-  currency: {
-    type: String,
-    default: 'eur',
-  },
-});
-
 const state = reactive({
-  btcPrices: {
-    loading: false,
-    data: [],
-  },
+  btcPrices: [],
 });
 
 const chartData = computed(() => ({
@@ -28,7 +21,7 @@ const chartData = computed(() => ({
       backgroundColor: 'rgba(31, 27, 89, 0.6)',
       fill: true,
       label: 'Price',
-      data: state.btcPrices.data,
+      data: state.btcPrices,
       tension: 0.1,
     },
   ],
@@ -79,26 +72,22 @@ const options = ref({
 });
 
 const setBtcPriceData = () => {
-  state.btcPrices.loading = true;
-
-  getBtcPriceHistory(props.currency)
+  getBtcPriceHistory(store.currency)
       .then(({prices}) => {
         if (prices.length === 0) {
-          state.btcPrices.data = prices;
+          state.btcPrices = prices;
         }
 
-        state.btcPrices.data = prices.map(({timestamp, price, priceFormatted}) => ({
+        state.btcPrices = prices.map(({timestamp, price, priceFormatted}) => ({
           x: new Date(timestamp),
           y: price,
           priceFormatted,
         }));
-
-        state.btcPrices.loading = false;
       });
 };
 
 onMounted(() => setBtcPriceData());
-watch(() => props.currency, () => setBtcPriceData());
+watch(() => store.currency, () => setBtcPriceData());
 </script>
 
 <template>

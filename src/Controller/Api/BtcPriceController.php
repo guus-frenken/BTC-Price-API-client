@@ -8,7 +8,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Service\BtcPrice\BtcPriceProviderInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-#[Route('/api/btcprice', name: 'btc_price_')]
+#[Route('/api/btcprice', name: 'api_btcprice_')]
 class BtcPriceController extends AbstractController
 {
     public function __construct(private readonly BtcPriceProviderInterface $btcPriceProvider)

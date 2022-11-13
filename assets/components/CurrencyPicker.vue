@@ -1,14 +1,31 @@
 <script setup>
+import {onMounted, reactive} from 'vue';
+import {useBtcApiStore} from '../stores/btcapistore';
+import useCurrencies from '../composables/currencies';
+
 defineProps({
   className: String,
 });
 
 defineEmits(['onChangeCurrency']);
+
+const store = useBtcApiStore();
+const {getCurrencies} = useCurrencies();
+
+const state = reactive({
+  currencies: [],
+});
+
+onMounted(() => {
+  getCurrencies().then(({currencies}) => {
+    state.currencies = currencies;
+  });
+});
 </script>
 
 <template>
   <select
-      @input="$emit('onChangeCurrency', $event.target.value)"
+      @input="store.setCurrency($event.target.value)"
       :class="className"
       class="form-select appearance-none
       px-3
@@ -24,7 +41,11 @@ defineEmits(['onChangeCurrency']);
       m-0
       focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
   >
-    <option value="eur">EUR</option>
-    <option value="usd">USD</option>
+    <option
+        v-for="({value, label}, index) in state.currencies"
+        :key="index"
+        :value="value"
+    >{{ label }}
+    </option>
   </select>
 </template>
