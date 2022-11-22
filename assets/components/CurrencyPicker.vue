@@ -3,12 +3,6 @@ import {onMounted, reactive} from 'vue';
 import {useBtcApiStore} from '../stores/btcapistore';
 import useCurrencies from '../composables/currencies';
 
-defineProps({
-  className: String,
-});
-
-defineEmits(['onChangeCurrency']);
-
 const store = useBtcApiStore();
 const {getCurrencies} = useCurrencies();
 
@@ -26,7 +20,6 @@ onMounted(() => {
 <template>
   <select
       @input="store.setCurrency($event.target.value)"
-      :class="className"
       class="form-select appearance-none
       px-3
       py-1.5

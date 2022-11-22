@@ -17,18 +17,13 @@ class NumberFormatter
      */
     public function format(int|float $number, int $decimals = 2, string $prefix = null, string $suffix = null): string
     {
-        $separators = match ($this->translator->getLocale()) {
-            'nl' => [',', '.'],
-            default => ['.', ','],
-        };
-
         $output = '';
 
         if (!is_null($prefix)) {
             $output .= $prefix;
         }
 
-        $output .= number_format($number, $decimals, ...$separators);
+        $output .= number_format($number, $decimals, ...$this->getNumberSeparators());
 
         if (!is_null($suffix)) {
             $output .= $suffix;
@@ -46,5 +41,13 @@ class NumberFormatter
         Currency $currency = Currency::EUR,
     ): string {
         return $this->format($number, $decimals, prefix: $currency->getCurrencySymbol());
+    }
+
+    private function getNumberSeparators(): array
+    {
+        return match ($this->translator->getLocale()) {
+            'nl' => [',', '.'],
+            default => ['.', ','],
+        };
     }
 }

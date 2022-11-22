@@ -1,7 +1,7 @@
 <script setup>
 import {computed, onMounted, reactive, ref, watch} from 'vue';
 import 'chartjs-adapter-date-fns';
-import {LineChart} from 'vue-chart-3';
+import {Line} from 'vue-chartjs';
 import {Chart, LineElement, PointElement, LineController, LinearScale, TimeScale, Filler, Tooltip} from 'chart.js';
 import {useBtcApiStore} from '../stores/btcapistore';
 import useBtcPrices from '../composables/btcprices';
@@ -27,7 +27,8 @@ const chartData = computed(() => ({
   ],
 }));
 
-const options = ref({
+const chartOptions = ref({
+  aspectRatio: 3,
   plugins: {
     legend: {
       display: false,
@@ -48,19 +49,17 @@ const options = ref({
   },
   interaction: {
     intersect: false,
-    mode: 'nearest',
-    axis: 'x',
   },
   scales: {
     x: {
       type: 'time',
       time: {
-        round: 'day',
-        unit: 'day',
         displayFormats: {
           'day': 'MMM dd',
         },
+        round: 'day',
         tooltipFormat: 'MMM dd',
+        unit: 'day',
       },
     },
     y: {
@@ -91,5 +90,5 @@ watch(() => store.currency, () => setBtcPriceData());
 </script>
 
 <template>
-  <LineChart :chartData="chartData" :options="options"/>
+  <Line :chart-options="chartOptions" :chart-data="chartData"/>
 </template>
