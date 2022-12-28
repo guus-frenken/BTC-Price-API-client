@@ -15,7 +15,7 @@ const state = reactive({
   btcPrices: [],
 });
 
-const chartData = computed(() => ({
+const data = computed(() => ({
   datasets: [
     {
       backgroundColor: 'rgba(31, 27, 89, 0.6)',
@@ -27,7 +27,7 @@ const chartData = computed(() => ({
   ],
 }));
 
-const chartOptions = ref({
+const options = ref({
   aspectRatio: 3,
   plugins: {
     legend: {
@@ -90,5 +90,5 @@ watch(() => store.currency, () => setBtcPriceData());
 </script>
 
 <template>
-  <Line :chart-options="chartOptions" :chart-data="chartData"/>
+  <Line :options="options" :data="data"/>
 </template>
